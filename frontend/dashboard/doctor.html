@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Dashboard | Mini Health</title>
+  <link rel="stylesheet" href="../styles/main.css" />
+  <link rel="stylesheet" href="../styles/dashboard.css" />
+</head>
+
+<body>
+  <!-- 🌐 NAVBAR -->
+  <header class="navbar">
+    <div class="logo">💙 Mini Health</div>
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="#" id="patientsLink">My Patients</a>
+      <a href="#" id="appointmentsLink">Appointments</a>
+      <a href="#" id="prescriptionsLink">Prescriptions</a>
+      <button id="logoutBtn" class="btn">Logout</button>
+    </nav>
+  </header>
+
+  <!-- 🩺 DASHBOARD CONTENT -->
+  <main class="dashboard-content">
+    <h1 id="doctorName">Welcome, Doctor 👋</h1>
+    <p class="subtitle">
+      Your professional workspace — manage patients, appointments, and prescriptions.
+    </p>
+
+    <!-- Quick Action Cards -->
+    <section class="cards">
+      <div class="card">
+        <h3>👩‍⚕️ Assigned Patients</h3>
+        <p>View and manage all your registered patients and their health records.</p>
+        <button id="viewPatientsBtn" class="btn primary">Open</button>
+      </div>
+
+      <div class="card">
+        <h3>🩺 Add Doctor Notes</h3>
+        <p>Record observations, follow-up advice, and care instructions.</p>
+        <a href="../records.html" class="btn primary">Add Notes</a>
+      </div>
+
+      <div class="card">
+        <h3>📅 Appointments</h3>
+        <p>Manage scheduled visits and check upcoming consultations.</p>
+        <a href="../appointments.html" class="btn primary">View</a>
+      </div>
+
+      <div class="card">
+        <h3>💊 Prescriptions</h3>
+        <p>Create and manage digital prescriptions for your patients.</p>
+        <a href="../prescriptions.html" class="btn primary">Manage</a>
+      </div>
+    </section>
+
+    <!-- 👩‍⚕️ Dynamic Patients Section -->
+    <section id="patientList" class="patients-section" style="display:none;">
+      <h2>👩‍⚕️ My Patients</h2>
+      <div id="patientsContainer" class="patient-grid"></div>
+    </section>
+  </main>
+
+  <!-- 🧠 SCRIPT -->
+  <script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const doctorNameEl = document.getElementById("doctorName");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const patientsContainer = document.getElementById("patientsContainer");
+  const patientList = document.getElementById("patientList");
+  const viewPatientsBtn = document.getElementById("viewPatientsBtn");
+
+  // Retrieve user info
+  const name = localStorage.getItem("name");
+  const role = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
+
+  // 🩺 Verify role
+  if (role !== "doctor") {
+    alert("Access denied! Only doctors can view this page.");
+    window.location.href = "../login.html";
+    return;
+  }
+
+  // Display doctor’s name
+  doctorNameEl.textContent = name
+    ? `Welcome, Dr. ${name} 👋`
+    : "Welcome, Doctor 👋";
+
+  // 🔒 Logout logic
+  logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../login.html";
+  });
+
+  // 👩‍⚕️ Load Patients when clicking "Open"
+  viewPatientsBtn.addEventListener("click", async () => {
+    try {
+      patientList.style.display = "block"; // show the section
+      patientsContainer.innerHTML = "<p>Loading patients...</p>";
+
+      const res = await fetch("http://localhost:3000/doctor/patients", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      console.log("Patients data:", data);
+
+      if (data.success && data.patients.length > 0) {
+        patientsContainer.innerHTML = data.patients
+          .map(
+            (p) => `
+          <div class="patient-card">
+            <h3>${p.name}</h3>
+            <p>${p.email}</p>
+          </div>`
+          )
+          .join("");
+      } else {
+        patientsContainer.innerHTML = "<p>No patients found.</p>";
+      }
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+      patientsContainer.innerHTML = "<p>⚠️ Failed to load patients.</p>";
+    }
+  });
+});
+</script>
+
+</body>
+</html>

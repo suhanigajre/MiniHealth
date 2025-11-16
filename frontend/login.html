@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Mini Health</title>
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/forms.css" />
+</head>
+
+<body>
+  <!-- 🔹 NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">💚 Mini Health</div>
+    <button id="themeToggle" class="toggle-theme">🌙</button>
+  </nav>
+
+  <!-- 🔐 LOGIN FORM -->
+  <section class="auth-container">
+    <div class="auth-card">
+      <h2>Welcome Back 👋</h2>
+      <p class="subtitle">Login to your Mini Health account</p>
+
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="Enter your email" />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Enter your password" />
+
+        <button type="submit" class="btn-primary">Login</button>
+      </form>
+
+      <p class="switch-text">
+        Don’t have an account? <a href="signup.html">Sign up</a>
+      </p>
+    </div>
+  </section>
+
+  <p id="msg" class="form-msg"></p>
+
+  <!-- 🔗 Scripts -->
+  <script src="scripts/auth.js"></script>
+  <script src="scripts/main.js"></script>
+
+  <script>
+    const BASE_URL = "http://localhost:3000";
+
+    // ✅ Check if user already logged in
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+
+      if (token && role) {
+        // Redirect directly if logged in
+        if (role === "doctor") {
+          window.location.href = "dashboard/doctor.html";
+        } else {
+          window.location.href = "dashboard/patient.html";
+        }
+        return; // stop rest of the script
+      }
+    });
+
+    // ✅ Login Handler
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msg = document.getElementById("msg");
+
+      try {
+        const res = await fetch(`${BASE_URL}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          // Save login info
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("role", data.role);
+          localStorage.setItem("userEmail", email);
+
+          msg.textContent = "Login successful! Redirecting...";
+          msg.style.color = "green";
+
+          // Redirect based on role
+          setTimeout(() => {
+            if (data.role === "doctor") {
+              window.location.href = "dashboard/doctor.html";
+            } else {
+              window.location.href = "dashboard/patient.html";
+            }
+          }, 1000);
+        } else {
+          msg.textContent = data.error || "Invalid credentials.";
+          msg.style.color = "red";
+        }
+      } catch (error) {
+        console.error(error);
+        msg.textContent = "Server connection error.";
+        msg.style.color = "red";
+      }
+    });
+  </script>
+</body>
+</html>
