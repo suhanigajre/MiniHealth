@@ -49,3 +49,14 @@ router.get('/', auth, async (req, res) => {
 });
 
 module.exports = router;
+router.post("/", auth, async (req, res) => {
+  const { patient_id, medication, dosage, instructions } = req.body;
+
+  await pool.query(`
+    INSERT INTO prescriptions
+    (doctor_id, patient_id, medication, dosage, instructions)
+    VALUES (?, ?, ?, ?, ?)
+  `, [req.user.id, patient_id, medication, dosage, instructions]);
+
+  res.json({ success: true });
+});

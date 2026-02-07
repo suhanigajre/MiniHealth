@@ -1,47 +1,41 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const db = require('../db');
-const auth = require('../middleware/auth');
+const pool = require("../db");
+const auth = require("../middleware/auth");
 
-// POST /records → patient adds a health record
-router.post('/', auth, async (req, res) => {
+// GET health records of a specific patient
+router.get("/:patientId", auth, async (req, res) => {
   try {
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ success: false, message: 'Only patients can add records' });
-    }
+    const doctorId = req.user.id;
+    const patientId = req.params.patientId;
 
-    const { systolic, diastolic, sugar_level, heart_rate, weight, notes } = req.body;
-
-    const [result] = await db.query(
-      `INSERT INTO health_records 
-       (patient_id, systolic, diastolic, sugar_level, heart_rate, weight, notes) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.id, systolic, diastolic, sugar_level, heart_rate, weight, notes]
+    // Check if this doctor is assigned to the patient
+    const [relation] = await pool.query(
+      "SELECT * FROM doctor_patient WHERE doctor_id = ? AND patient_id = ?",
+      [doctorId, patientId]
     );
 
-    res.json({ success: true, recordId: result.insertId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// GET /records → patient views their own records
-router.get('/', auth, async (req, res) => {
-  try {
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ success: false, message: 'Only patients can view their records' });
+    if (relation.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to view this patient"
+      });
     }
 
-    const [rows] = await db.query(
-      `SELECT * FROM health_records WHERE patient_id = ? ORDER BY recorded_at DESC`,
-      [req.user.id]
+    // Fetch medical records
+    const [records] = await pool.query(
+      "SELECT * FROM health_records WHERE patient_id = ? ORDER BY recorded_at DESC",
+      [patientId]
     );
 
-    res.json({ success: true, records: rows });
+    res.json({
+      success: true,
+      records
+    });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: err.message });
+    console.log(err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 

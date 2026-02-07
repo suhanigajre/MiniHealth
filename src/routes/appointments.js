@@ -43,3 +43,15 @@ router.get('/', auth, async (req, res) => {
 });
 
 module.exports = router;
+router.get("/doctor", auth, async (req, res) => {
+  const [rows] = await pool.query(`
+    SELECT a.*, u.name AS patient_name
+    FROM appointments a
+    JOIN users u ON u.id = a.patient_id
+    WHERE a.doctor_id = ?
+    ORDER BY appointment_date
+  `, [req.user.id]);
+
+  res.json({ success: true, appointments: rows });
+});
+

@@ -6,6 +6,32 @@
   <title>Doctor Dashboard | Mini Health</title>
   <link rel="stylesheet" href="../styles/main.css" />
   <link rel="stylesheet" href="../styles/dashboard.css" />
+
+  <style>
+    /* Patient card styling */
+    .patient-card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: 0.3s;
+    }
+    .patient-card:hover {
+      transform: translateY(-4px);
+    }
+    .patient-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .loading {
+      font-size: 16px;
+      margin-top: 10px;
+      color: #444;
+    }
+  </style>
 </head>
 
 <body>
@@ -24,9 +50,7 @@
   <!-- 🩺 DASHBOARD CONTENT -->
   <main class="dashboard-content">
     <h1 id="doctorName">Welcome, Doctor 👋</h1>
-    <p class="subtitle">
-      Your professional workspace — manage patients, appointments, and prescriptions.
-    </p>
+    <p class="subtitle">Your professional workspace — manage patients, appointments, and prescriptions.</p>
 
     <!-- Quick Action Cards -->
     <section class="cards">
@@ -58,6 +82,8 @@
     <!-- 👩‍⚕️ Dynamic Patients Section -->
     <section id="patientList" class="patients-section" style="display:none;">
       <h2>👩‍⚕️ My Patients</h2>
+      <p id="patientCount" style="color:#666; margin-bottom:10px;"></p>
+
       <div id="patientsContainer" class="patient-grid"></div>
     </section>
   </main>
@@ -70,36 +96,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   const patientsContainer = document.getElementById("patientsContainer");
   const patientList = document.getElementById("patientList");
   const viewPatientsBtn = document.getElementById("viewPatientsBtn");
+  const patientCount = document.getElementById("patientCount");
 
-  // Retrieve user info
   const name = localStorage.getItem("name");
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
 
-  // 🩺 Verify role
   if (role !== "doctor") {
     alert("Access denied! Only doctors can view this page.");
     window.location.href = "../login.html";
     return;
   }
 
-  // Display doctor’s name
-  doctorNameEl.textContent = name
-    ? `Welcome, Dr. ${name} 👋`
-    : "Welcome, Doctor 👋";
+  doctorNameEl.textContent = name ? `Welcome, Dr. ${name} 👋` : "Welcome, Doctor 👋";
 
-  // 🔒 Logout logic
   logoutBtn.addEventListener("click", () => {
     localStorage.clear();
     window.location.href = "../login.html";
   });
 
-  // 👩‍⚕️ Load Patients when clicking "Open"
-  viewPatientsBtn.addEventListener("click", async () => {
-    try {
-      patientList.style.display = "block"; // show the section
-      patientsContainer.innerHTML = "<p>Loading patients...</p>";
+  // Toggle patient list
+  let isOpen = false;
 
+  viewPatientsBtn.addEventListener("click", async () => {
+    isOpen = !isOpen;
+
+    if (!isOpen) {
+      patientList.style.display = "none";
+      return;
+    }
+
+    patientList.style.display = "block";
+    patientsContainer.innerHTML = `<p class="loading">Loading patients...</p>`;
+
+    try {
       const res = await fetch("http://localhost:3000/doctor/patients", {
         method: "GET",
         headers: {
@@ -112,6 +142,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.log("Patients data:", data);
 
       if (data.success && data.patients.length > 0) {
+        patientCount.textContent = `Total: ${data.patients.length} patients`;
+
         patientsContainer.innerHTML = data.patients
           .map(
             (p) => `
@@ -122,11 +154,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .join("");
       } else {
+        patientCount.textContent = "";
         patientsContainer.innerHTML = "<p>No patients found.</p>";
       }
     } catch (err) {
-      console.error("Error fetching patients:", err);
       patientsContainer.innerHTML = "<p>⚠️ Failed to load patients.</p>";
+      console.error("Error fetching patients:", err);
     }
   });
 });

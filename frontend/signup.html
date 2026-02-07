@@ -9,6 +9,7 @@
 </head>
 
 <body>
+
   <nav>
     <div class="logo">Mini Health</div>
     <button id="themeToggle" class="toggle-theme">🌙</button>
@@ -16,10 +17,12 @@
 
   <section class="auth-container">
     <div class="auth-card">
+
       <h2>Create Account 🩺</h2>
       <p class="subtitle">Join Mini Health as a patient or doctor</p>
 
       <form id="signupForm">
+
         <label>Full Name</label>
         <input type="text" id="name" required placeholder="Enter your full name">
 
@@ -28,6 +31,12 @@
 
         <label>Password</label>
         <input type="password" id="password" required placeholder="Create a password">
+
+        <label>Phone Number</label>
+        <input type="text" id="phone" required placeholder="Enter your phone number">
+
+        <label>Date of Birth</label>
+        <input type="date" id="dob" required>
 
         <label>Role</label>
         <select id="role" required>
@@ -39,21 +48,24 @@
         <button type="submit" class="btn-primary">Sign Up</button>
       </form>
 
-      <!-- Success or error message area -->
+      <!-- Message -->
       <p id="msg" class="form-msg"></p>
 
-      <!-- Hidden success button -->
-      <button id="goToLogin" class="btn primary" style="display:none;" onclick="window.location.href='login.html'">
-        Go to Login
+      <!-- Proceed Button (after signup success) -->
+      <button id="proceedBtn" class="btn primary" style="display:none; margin-top:10px;"
+        onclick="window.location.href='login.html'">
+        Proceed →
       </button>
 
       <p class="switch-text">
         Already have an account? <a href="login.html">Login</a>
       </p>
+
     </div>
   </section>
 
   <script src="scripts/auth.js"></script>
   <script src="scripts/main.js"></script>
+
 </body>
 </html>

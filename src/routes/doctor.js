@@ -32,3 +32,15 @@ router.get("/patients", verifyToken, async (req, res) => {
 });
 
 module.exports = router;
+router.get("/patients", auth, async (req, res) => {
+  const doctorId = req.user.id;
+
+  const [patients] = await pool.query(`
+    SELECT u.id, u.name, u.email
+    FROM users u
+    JOIN doctor_patient dp ON dp.patient_id = u.id
+    WHERE dp.doctor_id = ?
+  `, [doctorId]);
+
+  res.json({ success: true, patients });
+});

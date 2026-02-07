@@ -1,71 +1,61 @@
-const express = require('express');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const pool = require('../db'); // connects to MySQL
-require('dotenv').config();
+const express = require("express");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const pool = require("../db");
+require("dotenv").config();
 
 const router = express.Router();
 
-// ===================== SIGNUP =====================
-router.post('/signup', async (req, res) => {
+/* ========== SIGNUP ========== */
+router.post("/signup", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone, dob } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password required' });
+    if (!name || !email || !password || !phone || !dob) {
+      return res.status(400).json({ error: "All fields are required" });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert into DB
     const [result] = await pool.query(
-      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-      [name, email, hashedPassword, role || 'patient']
+      `INSERT INTO users (name, email, password, role, phone, dob)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [name, email, hashedPassword, role || "patient", phone, dob]
     );
 
     res.json({ success: true, userId: result.insertId });
+
   } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY') {
-      res.status(400).json({ error: 'Email already registered' });
-    } else {
-      console.error(err);
-      res.status(500).json({ error: 'Server error' });
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({ error: "Email already registered" });
     }
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// ===================== LOGIN =====================
-router.post('/login', async (req, res) => {
+/* ========== LOGIN ========== */
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
-    }
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
 
-    // Find user
-    const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
     if (rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const user = rows[0];
 
-    // Compare password
     const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    if (!match) return res.status(401).json({ error: "Invalid credentials" });
 
-    // Create JWT token
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: "3h" }
     );
 
-    // ✅ Send role & name to frontend
     res.json({
       success: true,
       token,
@@ -75,7 +65,7 @@ router.post('/login', async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Server error" });
   }
 });
 

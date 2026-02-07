@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Patient Records | Mini Health</title>
+<link rel="stylesheet" href="../styles/main.css">
+<link rel="stylesheet" href="../styles/dashboard.css">
+
+<style>
+.record-card {
+  padding: 15px;
+  margin: 10px 0;
+  background: #fff;
+  border-radius: 10px;
+  border-left: 4px solid #2196f3;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+
+<body>
+
+<header class="navbar">
+  <div class="logo">💙 Mini Health</div>
+  <nav>
+    <a href="doctor.html">Dashboard</a>
+    <button id="logoutBtn" class="btn">Logout</button>
+  </nav>
+</header>
+
+<main class="dashboard-content">
+  <h1 id="patientName">Patient Records</h1>
+
+  <div id="recordsContainer"></div>
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const token = localStorage.getItem("token");
+
+  // extract patientId from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const patientId = urlParams.get("id");
+  const patientName = urlParams.get("name");
+
+  document.getElementById("patientName").textContent =
+    `Medical Records — ${patientName}`;
+
+  const recordsContainer = document.getElementById("recordsContainer");
+
+  try {
+    const res = await fetch(`http://localhost:3000/records/${patientId}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+
+    if (data.success && data.records.length > 0) {
+      recordsContainer.innerHTML = data.records
+        .map(
+          (r) => `
+          <div class="record-card">
+            <p><strong>Date:</strong> ${r.recorded_at}</p>
+            <p><strong>BP:</strong> ${r.systolic}/${r.diastolic}</p>
+            <p><strong>Sugar:</strong> ${r.sugar_level}</p>
+            <p><strong>Heart Rate:</strong> ${r.heart_rate}</p>
+            <p><strong>Weight:</strong> ${r.weight}</p>
+            <p><strong>Notes:</strong> ${r.notes}</p>
+          </div>
+        `
+        )
+        .join("");
+    } else {
+      recordsContainer.innerHTML = "<p>No records found.</p>";
+    }
+
+  } catch (err) {
+    recordsContainer.innerHTML = "<p>Error loading records.</p>";
+  }
+});
+</script>
+
+</body>
+</html>
+ 
