@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Appointments | Mini Health</title>
+  <link rel="stylesheet" href="../styles/main.css" />
+  <link rel="stylesheet" href="../styles/dashboard.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f6fa;
+      color: #333;
+    }
+
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: #007bff;
+      color: #fff;
+    }
+    .navbar a, .navbar button {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 15px;
+      font-size: 14px;
+    }
+    .navbar button {
+      background: none;
+      border: 1px solid #fff;
+      padding: 5px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .navbar button:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Main content */
+    .dashboard-content {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .dashboard-content h1 {
+      font-size: 28px;
+      color: #007bff;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .dashboard-content p.subtitle {
+      font-size: 16px;
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    /* Appointment Table */
+    .appointments-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+    .appointments-table th,
+    .appointments-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+    .appointments-table th {
+      background: #007bff;
+      color: #fff;
+      font-weight: 600;
+    }
+    .appointments-table tr:hover {
+      background: #f1f1f1;
+    }
+
+    /* Action buttons */
+    .btn-action {
+      padding: 5px 10px;
+      border-radius: 5px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      margin-right: 5px;
+      transition: background 0.2s ease;
+    }
+    .btn-accept {
+      background: #28a745;
+      color: #fff;
+    }
+    .btn-accept:hover { background: #218838; }
+
+    .btn-deny {
+      background: #dc3545;
+      color: #fff;
+    }
+    .btn-deny:hover { background: #c82333; }
+
+    .btn-delay {
+      background: #ffc107;
+      color: #fff;
+    }
+    .btn-delay:hover { background: #e0a800; }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: #444;
+    }
+
+    @media (max-width: 768px) {
+      .appointments-table th, .appointments-table td {
+        font-size: 12px;
+        padding: 8px 10px;
+      }
+      .btn-action {
+        font-size: 12px;
+        padding: 4px 8px;
+        margin-bottom: 3px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="navbar">
+    <div class="logo">💙 Mini Health</div>
+    <nav>
+      <a href="dashboard/doctor.html">Dashboard</a>
+      <button id="logoutBtn" class="btn">Logout</button>
+    </nav>
+  </header>
+
+  <main class="dashboard-content">
+    <h1>Appointments 📅</h1>
+    <p class="subtitle">Manage upcoming appointments and patient requests</p>
+
+    <div id="appointmentsContainer">
+      <p class="loading">Loading appointments...</p>
+    </div>
+  </main>
+
+  <script src="../scripts/appointments.js"></script>
+</body>
+</html>

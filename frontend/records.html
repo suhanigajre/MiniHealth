@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Notes | Mini Health</title>
+  <link rel="stylesheet" href="../styles/main.css" />
+  <link rel="stylesheet" href="../styles/dashboard.css" />
+
+  <style>
+    /* --- CSS Variables --- */
+    :root {
+      --primary-color: #007bff;
+      --card-bg: #f9f9f9;
+      --text-color: #333;
+      --input-border: #ccc;
+      --btn-hover: #0056b3;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f6fa;
+      color: var(--text-color);
+    }
+
+    /* --- Navbar --- */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: var(--primary-color);
+      color: #fff;
+    }
+    .navbar a, .navbar button {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 15px;
+      font-size: 14px;
+    }
+    .navbar button {
+      background: none;
+      border: 1px solid #fff;
+      padding: 5px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .navbar button:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* --- Main Content --- */
+    .dashboard-content {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .dashboard-content h1 {
+      font-size: 28px;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .dashboard-content p.subtitle {
+      font-size: 16px;
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    /* --- Notes Dashboard Layout --- */
+    .notes-dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+    @media (max-width: 768px) {
+      .notes-dashboard {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* --- Add Note Section --- */
+    .add-note {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+    .add-note h3 {
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+    .add-note label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: 500;
+    }
+    .add-note select,
+    .add-note textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--input-border);
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .add-note button {
+      padding: 10px 16px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s ease;
+    }
+    .add-note button:hover {
+      background: var(--btn-hover);
+    }
+    .form-msg {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    /* --- Notes List Section --- */
+    #notesList {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    #notesList h3 {
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+    .note-card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .note-card h4 {
+      margin: 0 0 5px 0;
+      font-size: 16px;
+      color: var(--primary-color);
+    }
+    .note-card p {
+      margin: 0 0 5px 0;
+      color: #555;
+      font-size: 14px;
+    }
+    .note-card small {
+      color: #888;
+      font-size: 12px;
+    }
+
+    .loading {
+      font-size: 14px;
+      color: #444;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="logo">💙 Mini Health</div>
+    <nav>
+      <a href="dashboard/doctor.html">Dashboard</a>
+      <button id="logoutBtn" class="btn">Logout</button>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard-content">
+    <h1>Doctor Notes 📝</h1>
+    <p class="subtitle">Select a patient, write notes, and view all your stored notes</p>
+
+    <div class="notes-dashboard">
+      <!-- Add Note Section -->
+      <section class="add-note">
+        <h3>Add New Note</h3>
+        <form id="noteForm">
+          <label for="patientSelect">Select Patient</label>
+          <select id="patientSelect" required></select>
+
+          <label for="noteText">Note</label>
+          <textarea id="noteText" rows="4" placeholder="Enter your observation or advice" required></textarea>
+
+          <button type="submit">Save Note</button>
+        </form>
+        <p id="msg" class="form-msg"></p>
+      </section>
+
+      <!-- Notes List Section -->
+      <section id="notesList">
+        <h3>Your Notes</h3>
+        <div id="notesContainer"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="../scripts/records.js"></script>
+</body>
+</html>

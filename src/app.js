@@ -6,6 +6,8 @@ const morgan = require('morgan');
 
 const db = require('./db');
 
+const app = express(); // ✅ CREATE APP FIRST
+
 // Routes
 const authRoutes = require('./routes/auth');
 const appointmentRoutes = require('./routes/appointments');
@@ -13,8 +15,7 @@ const prescriptionRoutes = require('./routes/prescriptions');
 const messageRoutes = require('./routes/messages');
 const doctorRoutes = require('./routes/doctor');
 const recordsRoutes = require('./routes/records');
-
-const app = express();
+const assignRoutes = require("./routes/assign");
 
 // Global Middleware
 app.use(helmet());
@@ -27,7 +28,7 @@ app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'Mini Health API running' });
 });
 
-// DB test (temporary)
+// DB test
 app.get('/db-test', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT NOW() AS now');
@@ -38,17 +39,15 @@ app.get('/db-test', async (req, res) => {
 });
 
 // Routes
-app.use('/auth', authRoutes);
-app.use(express.json());
-app.use("/api/auth", authRoutes);
-
+app.use('/api/auth', authRoutes);
+app.use('/api', assignRoutes);   // ✅ NOW IT IS CORRECT
 app.use('/appointments', appointmentRoutes);
 app.use('/prescriptions', prescriptionRoutes);
 app.use('/messages', messageRoutes);
 app.use('/doctor', doctorRoutes);
 app.use('/records', recordsRoutes);
 
-// Server start (LAST)
+// Server start
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
