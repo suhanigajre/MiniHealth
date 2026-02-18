@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | Mini Health</title>
-  <link rel="stylesheet" href="styles/main.css" />
-  <link rel="stylesheet" href="styles/forms.css" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/forms.css">
 </head>
 
 <body>
 
+  <!-- Navbar -->
   <nav class="navbar">
-    <div class="logo">💚 Mini Health</div>
-    <button id="themeToggle" class="toggle-theme">🌙</button>
+    <a href="index.html" class="logo">💚 Mini Health</a>
+    <button id="themeToggle" class="toggle-theme" type="button">🌙</button>
   </nav>
 
+  <!-- Login Form -->
   <section class="auth-container">
     <div class="auth-card">
 
@@ -23,15 +27,19 @@
 
       <form id="loginForm">
 
-        <label>Email</label>
-        <input type="email" id="email" required placeholder="Enter your email">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="Enter your email" required>
 
-        <label>Password</label>
-        <input type="password" id="password" required placeholder="Enter your password">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required>
 
         <button type="submit" class="btn-primary">Login</button>
       </form>
 
+      <!-- Message -->
+      <p id="msg" class="form-msg"></p>
+
+      <!-- Switch -->
       <p class="switch-text">
         Don’t have an account? <a href="signup.html">Sign up</a>
       </p>
@@ -39,10 +47,10 @@
     </div>
   </section>
 
-  <p id="msg" class="form-msg"></p>
-
-  <script src="scripts/auth.js"></script>
+  <!-- Scripts -->
+  <script src="scripts/login.js"></script>
   <script src="scripts/main.js"></script>
+  <script src="scripts/theme.js"></script>
 
 </body>
 </html>

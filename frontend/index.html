@@ -10,19 +10,27 @@
 <body>
   <!-- 🌐 NAVBAR -->
   <header class="navbar">
-    <div class="logo">💚 Mini Health</div>
+    <a href="index.html" class="logo">💚 Mini Health</a>
+
     <nav>
       <a href="#features">Features</a>
       <a href="#about">About</a>
       <a href="#contact">Contact</a>
-      <button id="themeToggle">🌙 Dark Mode</button>
+      <button id="themeToggle" type="button" aria-label="Toggle theme">
+        🌙 Dark Mode
+      </button>
     </nav>
 
     <div class="auth-buttons">
       <a id="loginBtn" href="login.html" class="btn">Login</a>
       <a id="signupBtn" href="signup.html" class="btn primary">Sign Up</a>
-      <button id="dashboardBtn" class="btn primary" style="display:none;">Go to Dashboard</button>
-      <button id="logoutBtn" class="btn" style="display:none;">Logout</button>
+
+      <button id="dashboardBtn" class="btn primary hidden" type="button">
+        Go to Dashboard
+      </button>
+      <button id="logoutBtn" class="btn hidden" type="button">
+        Logout
+      </button>
     </div>
   </header>
 
@@ -30,15 +38,23 @@
   <section class="hero">
     <div class="hero-content">
       <h1 id="welcomeText">Your Health, Simplified 🩺</h1>
-      <p>Securely manage your medical records, connect with your doctor, and track your wellness — all in one place.</p>
+      <p>
+        Securely manage your medical records, connect with your doctor,
+        and track your wellness — all in one place.
+      </p>
+
       <div class="hero-buttons">
-        <a href="signup.html" class="btn primary">Get Started</a>
-        <a href="login.html" class="btn">Login</a>
+        <a id="heroSignupBtn" href="signup.html" class="btn primary">
+          Get Started
+        </a>
+        <a id="heroLoginBtn" href="login.html" class="btn">
+          Login
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- 🌿 FEATURES SECTION -->
+  <!-- 🌿 FEATURES -->
   <section id="features" class="features">
     <h2>Platform Highlights 🌿</h2>
     <div class="feature-grid">
@@ -61,17 +77,28 @@
     </div>
   </section>
 
-  <!-- 🧠 ABOUT SECTION -->
+  <!-- 🧠 ABOUT -->
   <section id="about" class="about">
     <h2>About Mini Health</h2>
-    <p>Our goal is to make healthcare seamless, secure, and accessible. With cloud-powered records, AI insights, and personalized dashboards, we help you stay on top of your wellness journey.</p>
+    <p>
+      Our goal is to make healthcare seamless, secure, and accessible.
+      With cloud-powered records and personalized dashboards, we help
+      you stay on top of your wellness journey.
+    </p>
   </section>
 
-  <!-- 📩 CONTACT SECTION -->
+  <!-- 📩 CONTACT -->
   <section id="contact" class="contact">
     <h2>Get in Touch</h2>
-    <p>Email: <a href="mailto:support@minihealth.com">support@minihealth.com</a></p>
-    <p>Follow us: 🌐 <a href="#">Instagram</a> | <a href="#">Twitter</a></p>
+    <p>
+      Email:
+      <a href="mailto:support@minihealth.com">support@minihealth.com</a>
+    </p>
+    <p>
+      Follow us:
+      <a href="#">Instagram</a> |
+      <a href="#">Twitter</a>
+    </p>
   </section>
 
   <!-- ⚙️ FOOTER -->
@@ -80,49 +107,7 @@
   </footer>
 
   <!-- 🔗 Scripts -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const loginBtn = document.getElementById("loginBtn");
-      const signupBtn = document.getElementById("signupBtn");
-      const dashboardBtn = document.getElementById("dashboardBtn");
-      const logoutBtn = document.getElementById("logoutBtn");
-      const welcomeText = document.getElementById("welcomeText");
-
-      const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role");
-      const userEmail = localStorage.getItem("userEmail");
-
-      // If logged in, adjust navbar
-      if (token && role) {
-        loginBtn.style.display = "none";
-        signupBtn.style.display = "none";
-        dashboardBtn.style.display = "inline-block";
-        logoutBtn.style.display = "inline-block";
-
-        // Personalized greeting
-        if (userEmail) {
-          welcomeText.textContent = `Welcome back, ${userEmail.split("@")[0]} 🩺`;
-        }
-
-        // Dashboard redirect logic
-        dashboardBtn.addEventListener("click", () => {
-          if (role === "doctor") {
-            window.location.href = "dashboard/doctor.html";
-          } else {
-            window.location.href = "dashboard/patient.html";
-          }
-        });
-
-        // Logout
-        logoutBtn.addEventListener("click", () => {
-          localStorage.removeItem("token");
-          localStorage.removeItem("role");
-          localStorage.removeItem("userEmail");
-          window.location.reload();
-        });
-      }
-    });
-  </script>
+  <script src="scripts/main.js"></script>
   <script src="scripts/theme.js"></script>
 </body>
 </html>

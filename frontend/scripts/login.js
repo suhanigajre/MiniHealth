@@ -11,38 +11,34 @@ loginForm.addEventListener("submit", async (e) => {
   msg.style.color = "black";
 
   try {
-    const res = await fetch("http://localhost:3000/auth/login", { // <-- fixed port & path
+    const res = await fetch("http://localhost:3000/api/auth/login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
 
-    if (!res.ok) {
-      // backend might send data.errors (validation) or data.error
-      const errorMsg = data.error || (data.errors ? data.errors[0].msg : "Login failed");
-      msg.textContent = errorMsg;
+    if (!res.ok || !data.success) {
+      msg.textContent = data.message || "Login failed";
       msg.style.color = "red";
       return;
     }
 
-    // ✅ Save auth info from backend response
+    // ✅ Save auth info in localStorage
     localStorage.setItem("token", data.token);
-    localStorage.setItem("role", data.role);   // fixed from data.role
-    localStorage.setItem("name", data.name);   // fixed from data.name
+    localStorage.setItem("role", data.role);   // important!
+    localStorage.setItem("name", data.name);
     localStorage.setItem("userEmail", data.email);
 
     msg.textContent = "Login successful! Redirecting...";
     msg.style.color = "green";
 
-    // ✅ Redirect by role
+    // ✅ Redirect based on role
     setTimeout(() => {
-      if (data.user.role === "doctor") {
+      if (data.role === "doctor") {
         window.location.href = "dashboard/doctor.html";
-      } else if (data.user.role === "patient") {
+      } else if (data.role === "patient") {
         window.location.href = "dashboard/patient.html";
       } else {
         msg.textContent = "Unknown role. Please login again.";
@@ -51,7 +47,7 @@ loginForm.addEventListener("submit", async (e) => {
     }, 800);
 
   } catch (err) {
-    console.error(err);
+    console.error("LOGIN ERROR:", err);
     msg.textContent = "Server error. Please try again later.";
     msg.style.color = "red";
   }

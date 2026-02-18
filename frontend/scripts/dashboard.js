@@ -1,49 +1,40 @@
-// ===========================
-// DASHBOARD LOGIC
-// ===========================
 document.addEventListener("DOMContentLoaded", () => {
   const userEmail = document.getElementById("userEmail");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  // Get stored data
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
   const currentPage = window.location.pathname;
 
-  // Redirect if not logged in
+  console.log("ROLE:", role);
+  console.log("PAGE:", currentPage);
+
   if (!token) {
     alert("Please login to access your dashboard.");
     window.location.href = "../login.html";
     return;
   }
 
-  // Load user info (mock for now — later we'll fetch from backend)
-  const email = localStorage.getItem("email") || "User";
+  const email = localStorage.getItem("userEmail") || "User";
 
   if (userEmail) {
     userEmail.textContent = email;
   }
 
-  // ✅ Role-based access control
+  // Role-based protection
   if (role === "doctor" && currentPage.includes("patient.html")) {
-    alert("Redirecting to Doctor Dashboard...");
     window.location.href = "doctor.html";
     return;
   }
 
   if (role === "patient" && currentPage.includes("doctor.html")) {
-    alert("Redirecting to Patient Dashboard...");
     window.location.href = "patient.html";
     return;
   }
 
-  // ✅ Logout
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      localStorage.removeItem("email");
-      alert("Logged out successfully!");
+      localStorage.clear();
       window.location.href = "../index.html";
     });
   }

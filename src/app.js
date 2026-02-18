@@ -3,50 +3,53 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
-const db = require('./db');             // DB connection
-const authRoutes = require('./routes/auth'); // Auth routes
-const authMiddleware = require('./middleware/auth');
+
+const db = require('./db');
+
+// Routes
+const authRoutes = require('./routes/auth');
+const appointmentRoutes = require('./routes/appointments');
+const prescriptionRoutes = require('./routes/prescriptions');
+const messageRoutes = require('./routes/messages');
+const doctorRoutes = require('./routes/doctor');
+const recordsRoutes = require('./routes/records');
+
 const app = express();
 
-// Middleware
+// Global Middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-
 // Health check
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'Mini Health API - Step 1 ready' });
+  res.json({ status: 'ok', message: 'Mini Health API running' });
 });
 
-// Test DB connection
+// DB test (temporary)
 app.get('/db-test', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT NOW() AS now');
     res.json({ success: true, time: rows[0].now });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
 // Routes
 app.use('/auth', authRoutes);
-const appointmentRoutes = require('./routes/appointments');
+app.use(express.json());
+app.use("/api/auth", authRoutes);
+
 app.use('/appointments', appointmentRoutes);
-const prescriptionRoutes = require('./routes/prescriptions');
 app.use('/prescriptions', prescriptionRoutes);
-const messageRoutes = require('./routes/messages');
 app.use('/messages', messageRoutes);
-const doctorRoutes = require("./routes/doctor");
-app.use("/doctor", doctorRoutes);
+app.use('/doctor', doctorRoutes);
+app.use('/records', recordsRoutes);
 
-
-// Start server
+// Server start (LAST)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
-const recordsRoutes = require('./routes/records');
-app.use('/records', recordsRoutes);
