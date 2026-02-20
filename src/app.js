@@ -16,6 +16,7 @@ const messageRoutes = require('./routes/messages');
 const doctorRoutes = require('./routes/doctor');
 const recordsRoutes = require('./routes/records');
 const assignRoutes = require("./routes/assign");
+const patientRoutes = require("./routes/patient");
 
 // Global Middleware
 app.use(helmet());
@@ -46,6 +47,7 @@ app.use('/prescriptions', prescriptionRoutes);
 app.use('/messages', messageRoutes);
 app.use('/doctor', doctorRoutes);
 app.use('/records', recordsRoutes);
+app.use("/api/patient", patientRoutes);
 
 // Server start
 const PORT = process.env.PORT || 3000;
