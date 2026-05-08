@@ -288,3 +288,9 @@ body.dark .hero {
 .fade-in-up {
   animation: fadeInUp 0.8s ease forwards;
 }
+.chat-controls select {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}

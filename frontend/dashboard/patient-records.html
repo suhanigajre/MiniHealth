@@ -1,87 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Patient Records | Mini Health</title>
-<link rel="stylesheet" href="../styles/main.css">
-<link rel="stylesheet" href="../styles/dashboard.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<style>
-.record-card {
-  padding: 15px;
-  margin: 10px 0;
-  background: #fff;
-  border-radius: 10px;
-  border-left: 4px solid #2196f3;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-</style>
+  <title>Patient Records | Mini Health</title>
+
+  <link rel="stylesheet" href="../styles/main.css" />
+  <link rel="stylesheet" href="../styles/dashboard.css" />
+
+  <style>
+    body {
+      background: #f5f6fa;
+      font-family: Arial, sans-serif;
+    }
+
+    .records-wrapper {
+      max-width: 1000px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .records-header {
+      background: linear-gradient(135deg, #007bff, #00bcd4);
+      color: white;
+      padding: 25px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 25px;
+    }
+
+    .records-header h1 {
+      margin-bottom: 8px;
+    }
+
+    .records-header p {
+      opacity: 0.95;
+    }
+
+    .records-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .record-card {
+      padding: 18px;
+      background: #fff;
+      border-radius: 14px;
+      border-left: 5px solid #2196f3;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      transition: 0.3s;
+    }
+
+    .record-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .record-card h3 {
+      color: #007bff;
+      margin-bottom: 12px;
+    }
+
+    .record-card p {
+      margin: 7px 0;
+      color: #444;
+      font-size: 14px;
+    }
+
+    .empty-box {
+      background: #fff;
+      padding: 25px;
+      text-align: center;
+      border-radius: 14px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      color: #555;
+    }
+
+    .loading {
+      text-align: center;
+      background: #fff;
+      padding: 20px;
+      border-radius: 14px;
+      color: #555;
+    }
+  </style>
 </head>
 
 <body>
+  <header class="navbar">
+    <div class="logo">💙 Mini Health</div>
+    <nav>
+      <a href="./patient.html">Dashboard</a>
+      <a href="../appointments.html">Appointments</a>
+      <a href="../prescriptions.html">Prescriptions</a>
+      <a href="../chat.html">Chat</a>
+      <button id="logoutBtn" class="btn">Logout</button>
+    </nav>
+  </header>
 
-<header class="navbar">
-  <div class="logo">💙 Mini Health</div>
-  <nav>
-    <a href="doctor.html">Dashboard</a>
-    <button id="logoutBtn" class="btn">Logout</button>
-  </nav>
-</header>
+  <main class="records-wrapper">
+    <section class="records-header">
+      <h1 id="patientName">My Medical Records</h1>
+      <p>View your health history, vitals, and doctor notes in one place.</p>
+    </section>
 
-<main class="dashboard-content">
-  <h1 id="patientName">Patient Records</h1>
+    <div id="recordsContainer" class="records-grid">
+      <p class="loading">Loading records...</p>
+    </div>
+  </main>
 
-  <div id="recordsContainer"></div>
-</main>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+      const name = localStorage.getItem("name");
 
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  const token = localStorage.getItem("token");
+      const recordsContainer = document.getElementById("recordsContainer");
+      const logoutBtn = document.getElementById("logoutBtn");
 
-  // extract patientId from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const patientId = urlParams.get("id");
-  const patientName = urlParams.get("name");
+      if (!token || role !== "patient") {
+        alert("Access denied! Please login as patient.");
+        window.location.href = "../login.html";
+        return;
+      }
 
-  document.getElementById("patientName").textContent =
-    `Medical Records — ${patientName}`;
+      document.getElementById("patientName").textContent =
+        name ? `Medical Records — ${name}` : "My Medical Records";
 
-  const recordsContainer = document.getElementById("recordsContainer");
+      logoutBtn.addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "../login.html";
+      });
 
-  try {
-    const res = await fetch(`http://localhost:3000/records/${patientId}`, {
-      headers: {
-        "Authorization": `Bearer ${token}`
+      try {
+        const res = await fetch("http://localhost:3000/api/records/my", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          recordsContainer.className = "";
+          recordsContainer.innerHTML = `
+            <div class="empty-box">
+              ${data.message || "Failed to load records."}
+            </div>
+          `;
+          return;
+        }
+
+        if (data.records.length > 0) {
+          recordsContainer.className = "records-grid";
+
+          recordsContainer.innerHTML = data.records
+            .map((r) => {
+              const date = r.recorded_at
+                ? new Date(r.recorded_at).toLocaleString()
+                : "-";
+
+              return `
+                <div class="record-card">
+                  <h3>🩺 Health Record</h3>
+                  <p><strong>Date:</strong> ${date}</p>
+                  <p><strong>Blood Pressure:</strong> ${r.systolic || "-"} / ${r.diastolic || "-"}</p>
+                  <p><strong>Sugar Level:</strong> ${r.sugar_level || "-"}</p>
+                  <p><strong>Heart Rate:</strong> ${r.heart_rate || "-"}</p>
+                  <p><strong>Weight:</strong> ${r.weight || "-"}</p>
+                  <p><strong>Notes:</strong> ${r.notes || "-"}</p>
+                </div>
+              `;
+            })
+            .join("");
+        } else {
+          recordsContainer.className = "";
+          recordsContainer.innerHTML = `
+            <div class="empty-box">
+              <h3>No records found</h3>
+              <p>Your health records will appear here after your doctor adds them.</p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error("Patient records error:", err);
+
+        recordsContainer.className = "";
+        recordsContainer.innerHTML = `
+          <div class="empty-box">
+            Error loading records.
+          </div>
+        `;
       }
     });
-
-    const data = await res.json();
-
-    if (data.success && data.records.length > 0) {
-      recordsContainer.innerHTML = data.records
-        .map(
-          (r) => `
-          <div class="record-card">
-            <p><strong>Date:</strong> ${r.recorded_at}</p>
-            <p><strong>BP:</strong> ${r.systolic}/${r.diastolic}</p>
-            <p><strong>Sugar:</strong> ${r.sugar_level}</p>
-            <p><strong>Heart Rate:</strong> ${r.heart_rate}</p>
-            <p><strong>Weight:</strong> ${r.weight}</p>
-            <p><strong>Notes:</strong> ${r.notes}</p>
-          </div>
-        `
-        )
-        .join("");
-    } else {
-      recordsContainer.innerHTML = "<p>No records found.</p>";
-    }
-
-  } catch (err) {
-    recordsContainer.innerHTML = "<p>Error loading records.</p>";
-  }
-});
-</script>
-
+  </script>
 </body>
 </html>
- 

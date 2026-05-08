@@ -1,12 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
-  const doctorName = localStorage.getItem("username");
+  const doctorName = localStorage.getItem("name");
 
-  if (role !== "doctor") {
+  if (!token || role !== "doctor") {
     alert("Access denied");
-    window.location.href = "../login.html";
+    window.location.href = "./login.html";
     return;
   }
 
@@ -18,65 +17,102 @@ document.addEventListener("DOMContentLoaded", () => {
   const notesInput = document.getElementById("additionalNotes");
 
   let selectedPatientId = null;
-  let editingId = null;
+
+  async function apiCall(endpoint, method = "GET", body = null) {
+    const options = {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const res = await fetch(`http://localhost:3000/api${endpoint}`, options);
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Request failed");
+    }
+
+    return data;
+  }
 
   // Load Assigned Patients
   async function loadPatients() {
-    const res = await fetch("http://localhost:3000/doctor/assigned-patients", {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    try {
+      const data = await apiCall("/doctor/patients");
 
-    const data = await res.json();
-    patientsList.innerHTML = "";
+      patientsList.innerHTML = "";
 
-    data.patients.forEach(patient => {
-      const div = document.createElement("div");
-      div.className = "patient-item";
-      div.textContent = patient.name;
+      if (!data.patients || data.patients.length === 0) {
+        patientsList.innerHTML = "<p>No assigned patients found.</p>";
+        return;
+      }
 
-      div.onclick = () => {
-        document.querySelectorAll(".patient-item").forEach(p => p.classList.remove("active"));
-        div.classList.add("active");
+      data.patients.forEach((patient) => {
+        const div = document.createElement("div");
+        div.className = "patient-item";
+        div.textContent = patient.name;
 
-        selectedPatientId = patient.id;
-        selectedPatientTitle.textContent = `Prescription History - ${patient.name}`;
-        loadHistory(patient.id);
-      };
+        div.onclick = () => {
+          document
+            .querySelectorAll(".patient-item")
+            .forEach((p) => p.classList.remove("active"));
 
-      patientsList.appendChild(div);
-    });
+          div.classList.add("active");
+
+          selectedPatientId = patient.id;
+          selectedPatientTitle.textContent = `Prescription History - ${patient.name}`;
+
+          loadHistory(patient.id);
+        };
+
+        patientsList.appendChild(div);
+      });
+    } catch (err) {
+      console.error("Load patients error:", err);
+      patientsList.innerHTML = "<p>Failed to load patients.</p>";
+    }
   }
 
   // Load Prescription History
   async function loadHistory(patientId) {
-    const res = await fetch(`http://localhost:3000/doctor/prescriptions/${patientId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    try {
+      const data = await apiCall("/prescriptions");
 
-    const data = await res.json();
-    historyContainer.innerHTML = "";
+      historyContainer.innerHTML = "";
 
-    data.prescriptions
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .forEach(p => {
+      const filtered = data.prescriptions.filter(
+        (p) => Number(p.patient_id) === Number(patientId)
+      );
 
+      if (filtered.length === 0) {
+        historyContainer.innerHTML = "<p>No prescription history found.</p>";
+        return;
+      }
+
+      filtered.forEach((p) => {
         const card = document.createElement("div");
         card.className = "history-card";
-        card.innerHTML = `
-          <small>${new Date(p.date).toLocaleDateString()}</small>
-          <p><strong>Diagnosis:</strong> ${p.diagnosis}</p>
-          <p><strong>Doctor:</strong> Dr. ${doctorName}</p>
-          <button class="btn btn-add">Edit</button>
-        `;
 
-        card.querySelector("button").onclick = () => {
-          diagnosisInput.value = p.diagnosis;
-          notesInput.value = p.notes;
-          editingId = p.id;
-        };
+        card.innerHTML = `
+          <small>${new Date(p.created_at).toLocaleDateString()}</small>
+          <p><strong>Medication:</strong> ${p.medication || "-"}</p>
+          <p><strong>Dosage:</strong> ${p.dosage || "-"}</p>
+          <p><strong>Instructions:</strong> ${p.instructions || "-"}</p>
+          <p><strong>Doctor:</strong> Dr. ${doctorName || "Doctor"}</p>
+        `;
 
         historyContainer.appendChild(card);
       });
+    } catch (err) {
+      console.error("Load history error:", err);
+      historyContainer.innerHTML = "<p>Failed to load prescription history.</p>";
+    }
   }
 
   // Add Medicine Row
@@ -94,59 +130,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Save Prescription
   document.getElementById("savePrescription").onclick = async () => {
-
     if (!selectedPatientId) {
       alert("Select patient first");
       return;
     }
 
     const medicines = [];
-    document.querySelectorAll(".medicine-row").forEach(row => {
-      medicines.push({
-        name: row.querySelector(".med-name").value,
-        dosage: row.querySelector(".med-dosage").value,
-        frequency: row.querySelector(".med-frequency").value,
-        duration: row.querySelector(".med-duration").value
+
+    document.querySelectorAll(".medicine-row").forEach((row) => {
+      const name = row.querySelector(".med-name").value.trim();
+      const dosage = row.querySelector(".med-dosage").value.trim();
+      const frequency = row.querySelector(".med-frequency").value.trim();
+      const duration = row.querySelector(".med-duration").value.trim();
+
+      if (name || dosage || frequency || duration) {
+        medicines.push(`${name} - ${dosage} - ${frequency} - ${duration}`);
+      }
+    });
+
+    const medicationText = medicines.join("\n");
+    const dosageText =
+      document.querySelector(".med-dosage")?.value.trim() || "As prescribed";
+
+    if (!medicationText) {
+      alert("Please add at least one medicine.");
+      return;
+    }
+
+    try {
+      await apiCall("/prescriptions", "POST", {
+        patient_id: selectedPatientId,
+        medication: medicationText,
+        dosage: dosageText,
+        instructions: notesInput.value,
       });
-    });
 
-    await fetch("http://localhost:3000/doctor/prescriptions", {
-      method: editingId ? "PUT" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        patientId: selectedPatientId,
-        diagnosis: diagnosisInput.value,
-        medicines,
-        notes: notesInput.value
-      })
-    });
+      diagnosisInput.value = "";
+      notesInput.value = "";
+      medicineList.innerHTML = "";
 
-    diagnosisInput.value = "";
-    notesInput.value = "";
-    medicineList.innerHTML = "";
-    editingId = null;
-
-    loadHistory(selectedPatientId);
+      alert("Prescription saved successfully");
+      loadHistory(selectedPatientId);
+    } catch (err) {
+      console.error("Save prescription error:", err);
+      alert(err.message || "Failed to save prescription");
+    }
   };
 
-  // Print
   document.getElementById("printPrescription").onclick = () => {
     window.print();
   };
 
-  // Download PDF
   document.getElementById("downloadPdf").onclick = () => {
     const element = document.getElementById("prescriptionArea");
+
+    if (typeof html2pdf === "undefined") {
+      alert("PDF library not loaded.");
+      return;
+    }
+
     html2pdf().from(element).save("prescription.pdf");
   };
 
-  // Logout
   document.getElementById("logoutBtn").onclick = () => {
     localStorage.clear();
-    window.location.href = "../login.html";
+    window.location.href = "./login.html";
   };
 
   loadPatients();

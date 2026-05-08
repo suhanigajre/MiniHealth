@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Emergency - MiniHealth</title>
+
+  <link rel="stylesheet" href="./styles/main.css" />
+  <link rel="stylesheet" href="./styles/dashboard.css" />
+
+  <style>
+    body {
+      background: #f5f6fa;
+      font-family: Arial, sans-serif;
+    }
+
+    .emergency-container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .emergency-container h1 {
+      color: #dc3545;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .emergency-container p {
+      text-align: center;
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    .emergency-form label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: 600;
+    }
+
+    .emergency-form input,
+    .emergency-form textarea,
+    .emergency-form select {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .emergency-form textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .emergency-btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #dc3545;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .emergency-btn:hover {
+      background: #b02a37;
+    }
+
+    #message {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="navbar">
+    <div class="logo">🚨 Mini Health</div>
+    <nav>
+      <a href="./dashboard/patient.html">Dashboard</a>
+      <a href="./chat.html">Chat</a>
+      <button id="logoutBtn" class="btn">Logout</button>
+    </nav>
+  </header>
+
+  <main class="emergency-container">
+    <h1>Emergency Help 🚨</h1>
+    <p>Submit urgent medical information so your doctor/admin can respond quickly.</p>
+
+    <form id="emergencyForm" class="emergency-form">
+      <label for="emergency_type">Emergency Type</label>
+      <select id="emergency_type" required>
+        <option value="">Select emergency type</option>
+        <option value="High Fever">High Fever</option>
+        <option value="Chest Pain">Chest Pain</option>
+        <option value="Breathing Problem">Breathing Problem</option>
+        <option value="Severe Pain">Severe Pain</option>
+        <option value="Accident/Injury">Accident/Injury</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        placeholder="Describe what happened, symptoms, severity, and since when..."
+        required
+      ></textarea>
+
+      <label for="location">Location</label>
+      <input
+        type="text"
+        id="location"
+        placeholder="Hostel room / home / area / city"
+      />
+
+      <button type="submit" class="emergency-btn">
+        Send Emergency Alert
+      </button>
+    </form>
+
+    <p id="message"></p>
+  </main>
+
+  <script src="./scripts/api.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const messageEl = document.getElementById("message");
+
+      if (!token || role !== "patient") {
+        alert("Only patients can submit emergency requests.");
+        window.location.href = "./login.html";
+        return;
+      }
+
+      logoutBtn.addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "./login.html";
+      });
+
+      document
+        .getElementById("emergencyForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          messageEl.innerText = "Sending emergency alert...";
+          messageEl.style.color = "black";
+
+          const data = {
+            emergency_type: document.getElementById("emergency_type").value,
+            description: document.getElementById("description").value.trim(),
+            location: document.getElementById("location").value.trim(),
+          };
+
+          const result = await apiRequest("/emergency", "POST", data);
+
+          if (result.success) {
+            messageEl.innerText =
+              result.message || "Emergency alert submitted successfully.";
+            messageEl.style.color = "green";
+            document.getElementById("emergencyForm").reset();
+          } else {
+            messageEl.innerText =
+              result.message || "Failed to submit emergency alert.";
+            messageEl.style.color = "red";
+          }
+        });
+    });
+  </script>
+</body>
+</html>

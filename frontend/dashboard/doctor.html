@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Doctor Dashboard | Mini Health</title>
+
   <link rel="stylesheet" href="../styles/main.css" />
   <link rel="stylesheet" href="../styles/dashboard.css" />
 
   <style>
-    /* Patient card styling */
     .patient-card {
       background: #fff;
       padding: 15px;
@@ -16,9 +16,11 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       transition: 0.3s;
     }
+
     .patient-card:hover {
       transform: translateY(-4px);
     }
+
     .patient-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -35,24 +37,25 @@
 </head>
 
 <body>
-  <!-- 🌐 NAVBAR -->
   <header class="navbar">
     <div class="logo">💙 Mini Health</div>
+
     <nav>
       <a href="../index.html">Home</a>
       <a href="#" id="patientsLink">My Patients</a>
-      <a href="#" id="appointmentsLink">Appointments</a>
-      <a href="#" id="prescriptionsLink">Prescriptions</a>
+      <a href="../appointments.html">Appointments</a>
+      <a href="../prescriptions.html">Prescriptions</a>
+      <a href="../chat.html">Chat</a>
       <button id="logoutBtn" class="btn">Logout</button>
     </nav>
   </header>
 
-  <!-- 🩺 DASHBOARD CONTENT -->
   <main class="dashboard-content">
     <h1 id="doctorName">Welcome, Doctor 👋</h1>
-    <p class="subtitle">Your professional workspace — manage patients, appointments, and prescriptions.</p>
+    <p class="subtitle">
+      Your professional workspace — manage patients, appointments, and prescriptions.
+    </p>
 
-    <!-- Quick Action Cards -->
     <section class="cards">
       <div class="card">
         <h3>👩‍⚕️ Assigned Patients</h3>
@@ -77,93 +80,95 @@
         <p>Create and manage digital prescriptions for your patients.</p>
         <a href="../prescriptions.html" class="btn primary">Manage</a>
       </div>
+
+      <div class="card">
+        <h3>💬 Chat</h3>
+        <p>Message your assigned patients securely.</p>
+        <a href="../chat.html" class="btn primary">Open Chat</a>
+      </div>
     </section>
 
-    <!-- 👩‍⚕️ Dynamic Patients Section -->
     <section id="patientList" class="patients-section" style="display:none;">
       <h2>👩‍⚕️ My Patients</h2>
       <p id="patientCount" style="color:#666; margin-bottom:10px;"></p>
-
       <div id="patientsContainer" class="patient-grid"></div>
     </section>
   </main>
 
-  <!-- 🧠 SCRIPT -->
+  <script src="../scripts/api.js"></script>
+
   <script>
-document.addEventListener("DOMContentLoaded", async () => {
-  const doctorNameEl = document.getElementById("doctorName");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const patientsContainer = document.getElementById("patientsContainer");
-  const patientList = document.getElementById("patientList");
-  const viewPatientsBtn = document.getElementById("viewPatientsBtn");
-  const patientCount = document.getElementById("patientCount");
+    document.addEventListener("DOMContentLoaded", () => {
+      const doctorNameEl = document.getElementById("doctorName");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const patientsContainer = document.getElementById("patientsContainer");
+      const patientList = document.getElementById("patientList");
+      const viewPatientsBtn = document.getElementById("viewPatientsBtn");
+      const patientsLink = document.getElementById("patientsLink");
+      const patientCount = document.getElementById("patientCount");
 
-  const name = localStorage.getItem("name");
-  const role = localStorage.getItem("role");
-  const token = localStorage.getItem("token");
+      const name = localStorage.getItem("name");
+      const role = localStorage.getItem("role");
+      const token = localStorage.getItem("token");
 
-  if (role !== "doctor") {
-    alert("Access denied! Only doctors can view this page.");
-    window.location.href = "../login.html";
-    return;
-  }
+      if (!token || role !== "doctor") {
+        alert("Access denied! Only doctors can view this page.");
+        window.location.href = "../login.html";
+        return;
+      }
 
-  doctorNameEl.textContent = name ? `Welcome, Dr. ${name} 👋` : "Welcome, Doctor 👋";
+      doctorNameEl.textContent = name
+        ? `Welcome, Dr. ${name} 👋`
+        : "Welcome, Doctor 👋";
 
-  logoutBtn.addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "../login.html";
-  });
-
-  // Toggle patient list
-  let isOpen = false;
-
-  viewPatientsBtn.addEventListener("click", async () => {
-    isOpen = !isOpen;
-
-    if (!isOpen) {
-      patientList.style.display = "none";
-      return;
-    }
-
-    patientList.style.display = "block";
-    patientsContainer.innerHTML = `<p class="loading">Loading patients...</p>`;
-
-    try {
-      const res = await fetch("http://localhost:3000/doctor/patients", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
+      logoutBtn.addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "../login.html";
       });
 
-      const data = await res.json();
-      console.log("Patients data:", data);
+      let isOpen = false;
 
-      if (data.success && data.patients.length > 0) {
-        patientCount.textContent = `Total: ${data.patients.length} patients`;
+      async function loadPatients() {
+        isOpen = !isOpen;
 
-        patientsContainer.innerHTML = data.patients
-          .map(
-            (p) => `
-          <div class="patient-card">
-            <h3>${p.name}</h3>
-            <p>${p.email}</p>
-          </div>`
-          )
-          .join("");
-      } else {
+        if (!isOpen) {
+          patientList.style.display = "none";
+          return;
+        }
+
+        patientList.style.display = "block";
+        patientsContainer.innerHTML = `<p class="loading">Loading patients...</p>`;
         patientCount.textContent = "";
-        patientsContainer.innerHTML = "<p>No patients found.</p>";
-      }
-    } catch (err) {
-      patientsContainer.innerHTML = "<p>⚠️ Failed to load patients.</p>";
-      console.error("Error fetching patients:", err);
-    }
-  });
-});
-</script>
 
+        const data = await apiRequest("/doctor/patients");
+
+        console.log("Patients data:", data);
+
+        if (data.success && data.patients && data.patients.length > 0) {
+          patientCount.textContent = `Total: ${data.patients.length} patients`;
+
+          patientsContainer.innerHTML = data.patients
+            .map(
+              (p) => `
+                <div class="patient-card">
+                  <h3>${p.name}</h3>
+                  <p>${p.email}</p>
+                </div>
+              `
+            )
+            .join("");
+        } else {
+          patientCount.textContent = "";
+          patientsContainer.innerHTML = `<p>${data.message || "No patients found."}</p>`;
+        }
+      }
+
+      viewPatientsBtn.addEventListener("click", loadPatients);
+      patientsLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        loadPatients();
+      });
+    });
+  </script>
 </body>
 </html>

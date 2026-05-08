@@ -17,7 +17,7 @@ router.post("/signup", async (req, res) => {
       ? req.body.role.toLowerCase().trim()
       : "patient";
 
-    const allowedRoles = ["patient", "doctor"];
+    const allowedRoles = ["patient", "doctor", "admin"];
     const userRole = allowedRoles.includes(role)
       ? role
       : "patient";
@@ -117,11 +117,12 @@ router.post(
       res.json({
         success: true,
         token,
+        id: user.id,
+        userId: user.id,
         role: user.role,
         name: user.name,
         email: user.email,
-      });
-
+          });
     } catch (err) {
       console.error("LOGIN ERROR:", err);
 

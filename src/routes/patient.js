@@ -1,39 +1,50 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
+const { authenticate, authorizeRoles } = require("../middleware/auth");
 
-// Get patient dashboard summary
-router.get("/dashboard/:id", async (req, res) => {
-  const patientId = req.params.id;
+// GET /api/patient/dashboard/:id
+router.get(
+  "/dashboard/:id",
+  authenticate,
+  authorizeRoles("patient", "admin"),
+  async (req, res) => {
+    const patientId = Number(req.params.id);
 
-  try {
-    // Appointments count
-    const [appointments] = await db.query(
-      "SELECT COUNT(*) as count FROM appointments WHERE patient_id = ?",
-      [patientId]
-    );
+    // patient can access only own dashboard
+    if (req.user.role === "patient" && req.user.id !== patientId) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You can access only your own dashboard",
+      });
+    }
 
-    // Prescriptions count
-    const [prescriptions] = await db.query(
-      "SELECT COUNT(*) as count FROM prescriptions WHERE patient_id = ?",
-      [patientId]
-    );
+    try {
+      const [appointments] = await db.query(
+        "SELECT COUNT(*) AS count FROM appointments WHERE patient_id = ?",
+        [patientId]
+      );
 
-    // Records count
-    const [records] = await db.query(
-      "SELECT COUNT(*) as count FROM records WHERE patient_id = ?",
-      [patientId]
-    );
+      const [prescriptions] = await db.query(
+        "SELECT COUNT(*) AS count FROM prescriptions WHERE patient_id = ?",
+        [patientId]
+      );
 
-    res.json({
-      appointments: appointments[0].count,
-      prescriptions: prescriptions[0].count,
-      records: records[0].count
-    });
+      const [records] = await db.query(
+       "SELECT COUNT(*) AS count FROM health_records WHERE patient_id = ?",
+        [patientId]
+   );
 
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+      res.json({
+        success: true,
+        appointments: appointments[0].count,
+        prescriptions: prescriptions[0].count,
+        records: records[0].count,
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
   }
-});
+);
 
 module.exports = router;

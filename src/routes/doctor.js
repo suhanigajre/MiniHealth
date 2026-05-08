@@ -4,6 +4,7 @@ const db = require("../db");
 const { authenticate, authorizeRoles } = require("../middleware/auth");
 
 /* 👨‍⚕️ Get patients assigned to logged-in doctor */
+/* GET /api/doctor/patients */
 router.get(
   "/patients",
   authenticate,
@@ -27,10 +28,11 @@ router.get(
         patients,
       });
     } catch (err) {
-      console.error(err);
+      console.error("GET DOCTOR PATIENTS ERROR:", err);
+
       res.status(500).json({
         success: false,
-        message: "Server error",
+        message: "Server error while loading patients",
       });
     }
   }
